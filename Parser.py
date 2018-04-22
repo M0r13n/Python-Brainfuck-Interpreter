@@ -7,58 +7,64 @@ class BrainfuckParser:
     def __call__(self, code):
         self.solve(code)
 
+    def map_bracelets(self):
+        stack = []
+        bracelet_map = {}
+        for position, instruction in enumerate(self.code):
+            if instruction == '[':
+                stack.append(position)
+            elif instruction == ']':
+                x = stack.pop()
+                bracelet_map[x] = position
+                bracelet_map[position] = x
+
+        return bracelet_map
+
     def solve(self, code):
-        self.data_ptr = 0
-        self.data = [0, ]
-        self.code = code
-        self.code_ptr = 0
-        self.loops = []
-        self.code_length = len(self.code)
-        while self.code_ptr < self.code_length:
-            instruction = self.code[self.code_ptr]
-            if instruction in self.instructions:
-                if instruction == '[':
-                    self.loops.append(self.code_ptr)
+        data_ptr = 0
+        data = [0, ]
+        self.code = ''.join(filter(lambda x: x in self.instructions, code))  # cut invalid stuff
+        code_ptr = 0
+        bracelet_map = self.map_bracelets()
+        code_length = len(self.code)
+        while code_ptr < code_length:
+            instruction = self.code[code_ptr]
+            if instruction == '[':
+                if data[data_ptr] == 0:
+                    code_ptr = bracelet_map[code_ptr]
+            elif instruction == ']':
+                if data[data_ptr] > 0:
+                    code_ptr = bracelet_map[code_ptr]
+            elif instruction == '>':
+                # increment data pointer
+                data_ptr += 1
+                if data_ptr == len(data):
+                    data.append(0)
 
-                elif instruction == ']':
-                    # close a loop
-                    if self.data[self.data_ptr] > 0:
-                        self.code_ptr = self.loops[-1]
-                    else:
-                        # remove last entry
-                        self.loops.pop()
+            elif instruction == '<':
+                # decrement code pointer
+                if data_ptr > 0:
+                    data_ptr -= 1
+                else:
+                    data_ptr = 0
 
-                elif instruction == '>':
-                    # increment data pointer
-                    self.data_ptr += 1
-                    if self.data_ptr == len(self.data):
-                        self.data.append(0)
+            elif instruction == '+':
+                # increment value at current data field
+                # in case of overflow start with 0 again
+                data[data_ptr] = data[data_ptr] + 1 if data[data_ptr] < 255 else 0
 
-                elif instruction == '<':
-                    # decrement code pointer
-                    if self.data_ptr > 0:
-                        self.data_ptr -= 1
-                    else:
-                        self.data_ptr = 0
+            elif instruction == '-':
+                # decrement value at current data field
+                # i case of overflow start with 255 again
+                data[data_ptr] = data[data_ptr] - 1 if data[data_ptr] > 0 else 255
 
-                elif instruction == '+':
-                    # increment value at current data field
-                    # in case of overflow start with 0 again
-                    self.data[self.data_ptr] = self.data[self.data_ptr] + 1 if self.data[self.data_ptr] < 255 else 0
+            elif instruction == '.':
+                # print current data as ASCII
+                print(chr(data[data_ptr]))
+            elif instruction == ',':
+                data[data_ptr] = read_in(data_ptr)
 
-                elif instruction == '-':
-                    # decrement value at current data field
-                    # i case of overflow start with 255 again
-                    self.data[self.data_ptr] = self.data[self.data_ptr] - 1 if self.data[self.data_ptr] > 0 else 255
-
-                elif instruction == '.':
-                    # print current data as ASCII
-                    print(chr(self.data[self.data_ptr]))
-                elif instruction == ',':
-                    # TODO missing
-                    self.data[self.data_ptr] = read_in(self.data_ptr)
-
-                self.code_ptr += 1
+            code_ptr += 1
 
 
 def read_in(cell):
@@ -69,4 +75,5 @@ def read_in(cell):
 
 
 b = BrainfuckParser()
-b('++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.>,.')
+b(
+    '>++++++++[-<+++++++++>]<.>>+>-[+]++>++>+++[>[->+++<<+++>]<<]>-----.>->+++..+++.>-.<<+[>[+>+]>>]<--------------.>>.+++.------.--------.>+.>+.')
