@@ -1,2 +1,2 @@
-# Python-Brainfuck-Parser
+# Python-Brainfuck-Interpreter
 A simple Brainfuck Interpreter
