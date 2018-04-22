@@ -1,7 +1,7 @@
 class BrainfuckParser:
     """A Parser for the Brainfuck Programming Language in Python"""
 
-    def __init__(self, code=None):
+    def __init__(self):
         self.instructions = ('<', '>', '+', '-', '.', ',', '[', ']')
 
     def __call__(self, code):
@@ -56,5 +56,17 @@ class BrainfuckParser:
                     print(chr(self.data[self.data_ptr]))
                 elif instruction == ',':
                     # TODO missing
-                    pass
+                    self.data[self.data_ptr] = read_in(self.data_ptr)
+
                 self.code_ptr += 1
+
+
+def read_in(cell):
+    inp = input('Enter ASCII Value for cell {} : '.format(cell))
+    inp = ord(inp)
+    if 0 < inp < 255:
+        return inp
+
+
+b = BrainfuckParser()
+b('++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.>,.')
